@@ -23,35 +23,23 @@ export default function Navbar() {
 			if (!user) return;
 
 			try {
-				// Attendre que les données de l'utilisateur soient disponibles
 				await user.reload();
 
 				const email =
 					user.emailAddresses?.[0]?.emailAddress ||
 					user.primaryEmailAddress?.emailAddress;
+
 				const name =
 					user.fullName ||
 					(user.firstName && user.lastName
 						? `${user.firstName} ${user.lastName}`
 						: "") ||
-					user.username;
+					user.username ||
+					email?.split("@")[0] ||
+					"Utilisateur";
 
-				if (email && name) {
-					console.log("Tentative d'ajout utilisateur:", { email, name });
+				if (email) {
 					await checkAndAddUser(email, name);
-				} else {
-					console.log("Données utilisateur incomplètes:", {
-						email: !!email,
-						name: !!name,
-						userData: {
-							emailAddresses: user.emailAddresses,
-							primaryEmailAddress: user.primaryEmailAddress,
-							fullName: user.fullName,
-							firstName: user.firstName,
-							lastName: user.lastName,
-							username: user.username,
-						},
-					});
 				}
 			} catch (error) {
 				console.error("Erreur lors de l'ajout de l'utilisateur:", error);
@@ -59,7 +47,7 @@ export default function Navbar() {
 		};
 
 		addUserToDatabase();
-	}, [user?.id]);
+	}, [user?.id, user]);
 
 	const isActiveLink = (href: string) => {
 		return pathname.replace(/^\//, "") === href.replace(/^\//, "");
