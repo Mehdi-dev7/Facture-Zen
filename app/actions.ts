@@ -77,6 +77,7 @@ export async function createEmptyInvoice(email: string, name: string) {
 }
 
 export async function getInvoiceByEmail(email: string) {
+	if (!email) return null;
 	try {
 		const user = await prisma.user.findUnique({
 			where: {
@@ -117,5 +118,25 @@ export async function getInvoiceByEmail(email: string) {
 	} catch (error) {
 		console.error(error);
 		return null;
+	}
+}
+
+export async function getInvoiceById(invoiceId: string) {
+	try {
+		const invoice = await prisma.invoice.findUnique({
+			where: {
+				id: invoiceId,
+			},
+			include: {
+				lines: true,
+			},
+		});
+		if(!invoice) {
+			throw new Error("Invoice not found");
+		}
+		return invoice;
+	} catch (error) {
+		console.error(error);
+		
 	}
 }

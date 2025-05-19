@@ -7,6 +7,7 @@ import { createEmptyInvoice, getInvoiceByEmail } from "./actions";
 import { useUser } from "@clerk/nextjs";
 import confetti from "canvas-confetti";
 import { Invoice } from "@/type";
+import InvoiceComponent from "./components/InvoiceComponent";
 
 export default function Home() {
 	const {user} = useUser();
@@ -39,6 +40,7 @@ export default function Home() {
 		try {
 			if(email){
 				await createEmptyInvoice(email, invoiceName);
+				fetchInvoices();
 				setInvoiceName("");
 				const modal = document.getElementById("my_modal_3") as HTMLDialogElement;
 				if(modal){
@@ -79,6 +81,11 @@ export default function Home() {
 						</div>
 					</div>
 					{/* TODO: Afficher les factures */}
+					{invoices.length > 0 && (
+						invoices.map((invoice, index) => (
+							<InvoiceComponent key={index} index={index} invoice={invoice} />
+						))
+					)}
 				</div>
 
 				<dialog id="my_modal_3" className="modal">
