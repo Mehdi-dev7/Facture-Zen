@@ -2,6 +2,7 @@
 
 import { getInvoiceById } from "@/app/actions";
 import InvoiceInfo from "@/app/components/InvoiceInfo";
+import InvoiceLines from "@/app/components/InvoiceLines";
 import VATControl from "@/app/components/VATControl";
 import Wrapper from "@/app/components/Wrapper";
 import { Invoice } from "@/type";
@@ -82,7 +83,7 @@ export default function Page({
 					</div>
 				</div>
 
-				<div>
+				<div className="flex flex-col lg:flex-row w-full">
 					<div className="flex w-full lg:w-[37%] flex-col">
 					<div className="mb-4 bg-base-200 p-4 rounded-xl">
 						<div className="flex items-center justify-between mb-4">
@@ -93,7 +94,9 @@ export default function Page({
 						<InvoiceInfo invoice={invoice} setInvoice={setInvoice} />
 
 					</div>
-					<div className="flex w-full lg:w-[63%] flex-col"></div>
+					<div className="flex w-full lg:w-[63%] flex-col  lg:ml-4">
+						<InvoiceLines invoice={invoice} setInvoice={setInvoice} />
+					</div>
 				</div>
 			</div>
 		</Wrapper>
