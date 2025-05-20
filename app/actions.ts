@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { Invoice } from "@/type";
 import { randomBytes } from "crypto";
 
 export const checkAndAddUser = async (email: string, name: string) => {
@@ -138,5 +139,26 @@ export async function getInvoiceById(invoiceId: string) {
 	} catch (error) {
 		console.error(error);
 		
+	}
+}
+
+export async function updateInvoice(invoice: Invoice) {
+	try {
+		const existingInvoice = await prisma.invoice.findUnique({
+			where: {
+				id: invoice.id,
+			},
+			include: {
+				lines: true,
+			},
+		});
+		if(!existingInvoice) {
+			throw new Error(`Invoice with id ${invoice.id} not found`);
+		}
+		
+		
+	 } catch (error) {
+		console.error(error);
+		return null;
 	}
 }

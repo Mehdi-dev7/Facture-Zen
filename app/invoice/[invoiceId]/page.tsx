@@ -5,7 +5,7 @@ import InvoiceInfo from "@/app/components/InvoiceInfo";
 import InvoiceLines from "@/app/components/InvoiceLines";
 import VATControl from "@/app/components/VATControl";
 import Wrapper from "@/app/components/Wrapper";
-import { Invoice } from "@/type";
+import { Invoice, Totals } from "@/type";
 import { ChevronDown, Trash } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
@@ -16,6 +16,8 @@ export default function Page({
 }) {
 	const [invoice, setInvoice] = useState<Invoice | null>(null);
 	const [initialInvoice, setInitialInvoice] = useState<Invoice | null>(null);
+	const [totals, setTotals] = useState<Totals | null>(null);
+	const [isDisabled, setIsDisabled] = useState(true);
 
 	const fetchInvoice = useCallback(async () => {
 		try {
@@ -34,8 +36,38 @@ export default function Page({
 		fetchInvoice();
 	}, [fetchInvoice]);
 
-	if (!invoice) return <div className="flex justify-center items-center h-screen">Facture non trouvée</div>;
+	useEffect(() => {
+		if (!invoice) return;
+		const ht = invoice.lines.reduce(
+			(acc, { quantity, unitPrice }) => acc + quantity * unitPrice,
+			0
+		);
+		const vat = invoice.vatRate ? ht * (invoice.vatRate / 100) : 0;
+		setTotals({ totalHT: ht, totalVAT: vat, totalTTC: ht + vat });
+	}, [invoice]);
 
+	useEffect(() => {
+		setIsDisabled(JSON.stringify(invoice) === JSON.stringify(initialInvoice));
+		}
+	, [invoice, initialInvoice]);
+
+	const handleStatusChange = (status: number) => {
+		if (invoice) {
+			const updateInvoice = {
+				...invoice,
+				status,
+			};
+			setInvoice(updateInvoice);
+		}
+	};
+
+	if (!invoice || !totals)
+		return (
+			<div className="flex justify-center items-center h-screen">
+				<div className="text-2xl font-bold">Facture non trouvée</div>
+			</div>
+		);
+	console.log(invoice);
 	return (
 		<Wrapper>
 			<div>
@@ -47,7 +79,11 @@ export default function Page({
 
 					<div className="flex items-center gap-2">
 						<div className="dropdown">
-							<div tabIndex={0} role="button" className="btn m-1 w-56 flex items-center justify-between">
+							<div
+								tabIndex={0}
+								role="button"
+								className="btn m-1 w-56 flex items-center justify-between"
+							>
 								{invoice?.status === 1 && "Brouillon"}
 								{invoice?.status === 2 && "En attente"}
 								{invoice?.status === 3 && "Payée"}
@@ -60,23 +96,25 @@ export default function Page({
 								className="dropdown-content menu bg-base-200 rounded-box z-1 w-56 p-2 shadow-sm ml-1"
 							>
 								<li>
-									<a href="">Brouillon</a>
+									<a onClick={() => handleStatusChange(1)}>Brouillon</a>
 								</li>
 								<li>
-									<a href="">En attente</a>
+									<a onClick={() => handleStatusChange(2)}>En attente</a>
 								</li>
 								<li>
-									<a href="">Payée</a>
+									<a onClick={() => handleStatusChange(3)}>Payée</a>
 								</li>
 								<li>
-									<a href="">Annulée</a>
+									<a onClick={() => handleStatusChange(4)}>Annulée</a>
 								</li>
 								<li>
-									<a href="">Impayée</a>
+									<a onClick={() => handleStatusChange(5)}>Impayée</a>
 								</li>
 							</ul>
 						</div>
-						<button className="btn btn-sm btn-accent">Sauvergarder</button>
+						<button className="btn btn-sm btn-accent" disabled={isDisabled}>
+							Sauvergarder
+						</button>
 						<button className="btn btn-sm btn-accent">
 							<Trash />
 						</button>
@@ -85,14 +123,30 @@ export default function Page({
 
 				<div className="flex flex-col lg:flex-row w-full">
 					<div className="flex w-full lg:w-[37%] flex-col">
-					<div className="mb-4 bg-base-200 p-4 rounded-xl">
-						<div className="flex items-center justify-between mb-4">
-							<div className="badge badge-accent">Résumé des totaux</div>
-							<VATControl invoice={invoice} setInvoice={setInvoice} />
-						</div>
-					</div>
-						<InvoiceInfo invoice={invoice} setInvoice={setInvoice} />
+						<div className="mb-4 bg-base-200 p-4 rounded-xl">
+							<div className="flex items-center justify-between mb-4">
+								<div className="badge badge-accent">Résumé des totaux</div>
+								<VATControl invoice={invoice} setInvoice={setInvoice} />
+							</div>
 
+							<div className="flex items-center justify-between">
+								<span>Total HT</span>
+								<span>{totals.totalHT.toFixed(2)} €</span>
+							</div>
+
+							<div className="flex items-center justify-between">
+								<span>
+									TVA {invoice?.vatActive ? `${invoice?.vatRate}` : "0"}%
+								</span>
+								<span>{totals.totalVAT.toFixed(2)} €</span>
+							</div>
+
+							<div className="flex items-center justify-between font-bold">
+								<span>Total TTC</span>
+								<span>{totals.totalTTC.toFixed(2)} €</span>
+							</div>
+						</div>
+						<InvoiceInfo invoice={invoice} setInvoice={setInvoice} />
 					</div>
 					<div className="flex w-full lg:w-[63%] flex-col  lg:ml-4">
 						<InvoiceLines invoice={invoice} setInvoice={setInvoice} />

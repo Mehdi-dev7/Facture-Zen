@@ -32,6 +32,8 @@ export default function VATControl({ invoice, setInvoice }: Props) {
         value={invoice.vatRate}
         className="input input-sm input-bordered w-16 h-6 ml-2"
         onChange={handleVatRateChange}
+        min={0}
+        max={100}
         />
       )}
 		</div>
