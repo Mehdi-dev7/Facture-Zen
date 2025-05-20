@@ -222,3 +222,21 @@ export async function updateInvoice(invoice: Invoice) {
 		return null;
 	}
 }
+
+
+export async function deleteInvoice(invoiceId: string) {
+	try {
+		const deletedInvoice = await prisma.invoice.delete({
+			where: {
+				id: invoiceId,
+			},
+		});
+		if (!deletedInvoice) {
+			throw new Error(`Erreur lors de la suppression de la facture ${invoiceId}`);
+		}
+		return deletedInvoice;
+	} catch (error) {
+		console.error(error);
+		return null;
+	}
+}

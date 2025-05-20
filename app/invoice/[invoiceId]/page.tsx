@@ -1,6 +1,6 @@
 "use client";
 
-import { getInvoiceById, updateInvoice } from "@/app/actions";
+import { deleteInvoice, getInvoiceById, updateInvoice } from "@/app/actions";
 import InvoiceInfo from "@/app/components/InvoiceInfo";
 import InvoiceLines from "@/app/components/InvoiceLines";
 import VATControl from "@/app/components/VATControl";
@@ -8,7 +8,7 @@ import Wrapper from "@/app/components/Wrapper";
 import { Invoice, Totals } from "@/type";
 import { ChevronDown, Save, Trash } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
-
+import { useRouter } from "next/navigation";
 export default function Page({
 	params,
 }: {
@@ -19,6 +19,8 @@ export default function Page({
 	const [totals, setTotals] = useState<Totals | null>(null);
 	const [isDisabled, setIsDisabled] = useState(true);
 	const [isLoading, setIsLoading] = useState(false);
+
+	const router = useRouter();
 
 	const fetchInvoice = useCallback(async () => {
 		try {
@@ -75,6 +77,18 @@ export default function Page({
 			setIsLoading(false);
 		} catch (error) {
 			console.error("Erreur lors de la sauvegarde de la facture", error);
+		}
+	}
+
+	const handleDelete = async () => {
+		const confirmed = window.confirm("Voulez-vous vraiment supprimer cette facture ?");
+		if (confirmed) {
+			try {
+				await deleteInvoice(invoice?.id as string);
+				router.push("/");
+			} catch (error) {
+				console.error("Erreur lors de la suppression de la facture", error);
+			}
 		}
 	}
 
@@ -136,7 +150,7 @@ export default function Page({
 								</>
 							)}
 						</button>
-						<button className="btn btn-sm btn-accent">
+						<button className="btn btn-sm btn-accent" onClick={handleDelete}>
 							<Trash />
 						</button>
 					</div>

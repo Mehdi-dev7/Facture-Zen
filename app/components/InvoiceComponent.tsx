@@ -80,13 +80,13 @@ export default function InvoiceComponent({
 			</div>
 			<div className="w-full">
 				<div>
-					<div className="stat-title">
-						<div className="uppercase text-sm">FACT-{invoice.id}</div>
+					<div className="">
+          <div className="uppercase stat-action font-semibold text-md">{invoice.name}</div>
+						<div className="stat-desc uppercase ">FACT-{invoice.id}</div>
 					</div>
 					<div>
 						<div className="stat-value">{calculateTotal(invoice).toFixed(2)}€</div>
 					</div>
-          <div className="stat-desc">{invoice.name}</div>
 				</div>
 			</div>
 		</div>
