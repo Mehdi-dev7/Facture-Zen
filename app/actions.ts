@@ -132,13 +132,12 @@ export async function getInvoiceById(invoiceId: string) {
 				lines: true,
 			},
 		});
-		if(!invoice) {
+		if (!invoice) {
 			throw new Error("Invoice not found");
 		}
 		return invoice;
 	} catch (error) {
 		console.error(error);
-		
 	}
 }
 
@@ -152,12 +151,73 @@ export async function updateInvoice(invoice: Invoice) {
 				lines: true,
 			},
 		});
-		if(!existingInvoice) {
+		if (!existingInvoice) {
 			throw new Error(`Invoice with id ${invoice.id} not found`);
 		}
-		
-		
-	 } catch (error) {
+		await prisma.invoice.update({
+			where: {
+				id: invoice.id,
+			},
+			data: {
+				issuerName: invoice.issuerName,
+				issuerAddress: invoice.issuerAddress,
+				clientName: invoice.clientName,
+				clientAddress: invoice.clientAddress,
+				invoiceDate: invoice.invoiceDate,
+				dueDate: invoice.dueDate,
+				vatActive: invoice.vatActive,
+				vatRate: invoice.vatRate,
+				status: invoice.status,
+			},
+		});
+
+		const existingLines = existingInvoice.lines;
+		const receivedLines = invoice.lines;
+		const linesToDelete = existingLines.filter(
+			(existingLine) =>
+				!receivedLines.some((line) => line.id === existingLine.id)
+		);
+		if (linesToDelete.length > 0) {
+			await prisma.invoiceLine.deleteMany({
+				where: {
+					id: {
+						in: linesToDelete.map((line) => line.id),
+					},
+				},
+			});
+		}
+
+		for (const line of receivedLines) {
+			const existingLine = existingLines.find((l) => l.id === line.id);
+			if (existingLine) {
+				const hasChanged =
+					line.description !== existingLine.description ||
+					line.quantity !== existingLine.quantity ||
+					line.unitPrice !== existingLine.unitPrice;
+				if (hasChanged) {
+					await prisma.invoiceLine.update({
+						where: {
+							id: line.id,
+						},
+						data: {
+							description: line.description,
+							quantity: line.quantity,
+							unitPrice: line.unitPrice,
+						},
+					});
+				} 
+			}else {
+				await prisma.invoiceLine.create({
+					data: {
+						description: line.description,
+						quantity: line.quantity,
+						unitPrice: line.unitPrice,
+						invoiceId: invoice.id,
+					},
+				});
+			}
+		}
+	} catch (error) {
 		console.error(error);
 		return null;
 	}

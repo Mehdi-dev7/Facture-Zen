@@ -1,12 +1,12 @@
 "use client";
 
-import { getInvoiceById } from "@/app/actions";
+import { getInvoiceById, updateInvoice } from "@/app/actions";
 import InvoiceInfo from "@/app/components/InvoiceInfo";
 import InvoiceLines from "@/app/components/InvoiceLines";
 import VATControl from "@/app/components/VATControl";
 import Wrapper from "@/app/components/Wrapper";
 import { Invoice, Totals } from "@/type";
-import { ChevronDown, Trash } from "lucide-react";
+import { ChevronDown, Save, Trash } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 export default function Page({
@@ -18,6 +18,7 @@ export default function Page({
 	const [initialInvoice, setInitialInvoice] = useState<Invoice | null>(null);
 	const [totals, setTotals] = useState<Totals | null>(null);
 	const [isDisabled, setIsDisabled] = useState(true);
+	const [isLoading, setIsLoading] = useState(false);
 
 	const fetchInvoice = useCallback(async () => {
 		try {
@@ -60,6 +61,22 @@ export default function Page({
 			setInvoice(updateInvoice);
 		}
 	};
+
+	const handleSave = async () => {
+		if (!invoice) return;
+		setIsLoading(true);
+		try {
+			await updateInvoice(invoice);
+			const updatedInvoice = await getInvoiceById(invoice.id);
+			if (updatedInvoice) {
+				setInvoice(updatedInvoice);
+				setInitialInvoice(updatedInvoice);
+			}
+			setIsLoading(false);
+		} catch (error) {
+			console.error("Erreur lors de la sauvegarde de la facture", error);
+		}
+	}
 
 	if (!invoice || !totals)
 		return (
@@ -112,8 +129,12 @@ export default function Page({
 								</li>
 							</ul>
 						</div>
-						<button className="btn btn-sm btn-accent" disabled={isDisabled}>
-							Sauvergarder
+						<button className="btn btn-sm btn-accent" disabled={isDisabled || isLoading} onClick={handleSave}>
+							{isLoading ? (<span className="loading loading-spinner loading-sm"></span>) : (
+								<>Sauvegarder
+									<Save className="w-4 ml-2" />
+								</>
+							)}
 						</button>
 						<button className="btn btn-sm btn-accent">
 							<Trash />
