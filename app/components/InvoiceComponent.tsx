@@ -57,7 +57,7 @@ const getStatusBadge = (status: number) => {
 
 export default function InvoiceComponent({
 	invoice,
-	index,
+	
 }: InvoiceComponentProps) {
 	const calculateTotal = (invoice: Invoice) => {
 		const totalHT = invoice?.lines?.reduce((acc, line) => {

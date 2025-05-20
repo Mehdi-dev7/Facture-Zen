@@ -1,36 +1,35 @@
 "use client";
 
-import { Layers } from "lucide-react";
-import { useEffect, useState } from "react";
-import Wrapper from "./components/Wrapper";
-import { createEmptyInvoice, getInvoiceByEmail } from "./actions";
+import { Invoice } from "@/type";
 import { useUser } from "@clerk/nextjs";
 import confetti from "canvas-confetti";
-import { Invoice } from "@/type";
+import { Layers } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { createEmptyInvoice, getInvoiceByEmail } from "./actions";
 import InvoiceComponent from "./components/InvoiceComponent";
+import Wrapper from "./components/Wrapper";
 
 export default function Home() {
-	const {user} = useUser();
+	const { user } = useUser();
 	const [invoiceName, setInvoiceName] = useState("");
 	const [isNameValid, setIsNameValid] = useState(true);
 	const [invoices, setInvoices] = useState<Invoice[]>([]);
 	const email = user?.primaryEmailAddress?.emailAddress as string;
 
-
-	const fetchInvoices = async () => {
+	const fetchInvoices = useCallback(async () => {
 		try {
 			const data = await getInvoiceByEmail(email);
-			if(data){
+			if (data) {
 				setInvoices(data);
 			}
 		} catch (error) {
 			console.error("Erreur lors de la récupération des factures", error);
 		}
-	}
+	}, [email]);
 
 	useEffect(() => {
 		fetchInvoices();
-	}, [email]);
+	}, [fetchInvoices]);
 
 	useEffect(() => {
 		setIsNameValid(invoiceName.length <= 60);
@@ -38,12 +37,14 @@ export default function Home() {
 
 	const handleCreateInvoice = async () => {
 		try {
-			if(email){
+			if (email) {
 				await createEmptyInvoice(email, invoiceName);
 				fetchInvoices();
 				setInvoiceName("");
-				const modal = document.getElementById("my_modal_3") as HTMLDialogElement;
-				if(modal){
+				const modal = document.getElementById(
+					"my_modal_3"
+				) as HTMLDialogElement;
+				if (modal) {
 					modal.close();
 				}
 			}
@@ -57,7 +58,7 @@ export default function Home() {
 		} catch (error) {
 			console.error("Erreur lors de la création de la facture", error);
 		}
-	}
+	};
 
 	return (
 		<Wrapper>
@@ -81,11 +82,10 @@ export default function Home() {
 						</div>
 					</div>
 					{/* TODO: Afficher les factures */}
-					{invoices.length > 0 && (
+					{invoices.length > 0 &&
 						invoices.map((invoice, index) => (
 							<InvoiceComponent key={index} index={index} invoice={invoice} />
-						))
-					)}
+						))}
 				</div>
 
 				<dialog id="my_modal_3" className="modal">
