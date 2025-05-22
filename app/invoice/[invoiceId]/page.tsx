@@ -3,12 +3,13 @@
 import { deleteInvoice, getInvoiceById, updateInvoice } from "@/app/actions";
 import InvoiceInfo from "@/app/components/InvoiceInfo";
 import InvoiceLines from "@/app/components/InvoiceLines";
+import InvoicePDF from "@/app/components/InvoicePDF";
 import VATControl from "@/app/components/VATControl";
 import Wrapper from "@/app/components/Wrapper";
 import { Invoice, Totals } from "@/type";
 import { ChevronDown, Save, Trash } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 export default function Page({
 	params,
 }: {
@@ -51,8 +52,7 @@ export default function Page({
 
 	useEffect(() => {
 		setIsDisabled(JSON.stringify(invoice) === JSON.stringify(initialInvoice));
-		}
-	, [invoice, initialInvoice]);
+	}, [invoice, initialInvoice]);
 
 	const handleStatusChange = (status: number) => {
 		if (invoice) {
@@ -78,10 +78,12 @@ export default function Page({
 		} catch (error) {
 			console.error("Erreur lors de la sauvegarde de la facture", error);
 		}
-	}
+	};
 
 	const handleDelete = async () => {
-		const confirmed = window.confirm("Voulez-vous vraiment supprimer cette facture ?");
+		const confirmed = window.confirm(
+			"Voulez-vous vraiment supprimer cette facture ?"
+		);
 		if (confirmed) {
 			try {
 				await deleteInvoice(invoice?.id as string);
@@ -90,7 +92,7 @@ export default function Page({
 				console.error("Erreur lors de la suppression de la facture", error);
 			}
 		}
-	}
+	};
 
 	if (!invoice || !totals)
 		return (
@@ -143,9 +145,16 @@ export default function Page({
 								</li>
 							</ul>
 						</div>
-						<button className="btn btn-sm btn-accent" disabled={isDisabled || isLoading} onClick={handleSave}>
-							{isLoading ? (<span className="loading loading-spinner loading-sm"></span>) : (
-								<>Sauvegarder
+						<button
+							className="btn btn-sm btn-accent"
+							disabled={isDisabled || isLoading}
+							onClick={handleSave}
+						>
+							{isLoading ? (
+								<span className="loading loading-spinner loading-sm"></span>
+							) : (
+								<>
+									Sauvegarder
 									<Save className="w-4 ml-2" />
 								</>
 							)}
@@ -185,6 +194,8 @@ export default function Page({
 					</div>
 					<div className="flex w-full lg:w-[63%] flex-col  lg:ml-4">
 						<InvoiceLines invoice={invoice} setInvoice={setInvoice} />
+
+						<InvoicePDF invoice={invoice} totals={totals} />
 					</div>
 				</div>
 			</div>
