@@ -22,11 +22,20 @@ export default function InvoiceLines({ invoice, setInvoice }: Props) {
 	};
 	const handleQuantityChange = (index: number, value: string) => {
 		const updateLines = [...invoice.lines];
-		updateLines[index].quantity = value === "" ? 0 : parseInt(value);
+		updateLines[index].quantity =
+			value === "" || value === "0" ? 0 : parseInt(value);
 		setInvoice({
 			...invoice,
 			lines: updateLines,
 		});
+	};
+	const handleQuantityFocus = (
+		index: number,
+		e: React.FocusEvent<HTMLInputElement>
+	) => {
+		if (e.target.value === "0") {
+			e.target.value = "";
+		}
 	};
 	const handleDescriptionChange = (index: number, value: string) => {
 		const updateLines = [...invoice.lines];
@@ -38,12 +47,23 @@ export default function InvoiceLines({ invoice, setInvoice }: Props) {
 	};
 	const handleUnitPriceChange = (index: number, value: string) => {
 		const updateLines = [...invoice.lines];
-		updateLines[index].unitPrice = value === "" ? 0 : parseFloat(value);
+		updateLines[index].unitPrice =
+			value === "" || value === "0" ? 0 : parseFloat(value);
 		setInvoice({
 			...invoice,
 			lines: updateLines,
 		});
 	};
+
+	const handleUnitPriceFocus = (
+		index: number,
+		e: React.FocusEvent<HTMLInputElement>
+	) => {
+		if (e.target.value === "0") {
+			e.target.value = "";
+		}
+	};
+
 	const handleDeleteLine = (index: number) => {
 		const updateLines = [...invoice.lines];
 		updateLines.splice(index, 1);
@@ -78,9 +98,10 @@ export default function InvoiceLines({ invoice, setInvoice }: Props) {
 								<td>
 									<input
 										type="number"
-										value={line.quantity}
+										value={line.quantity === 0 ? "" : line.quantity}
 										className="input input-sm input-bordered w-full"
 										min={0}
+										onFocus={(e) => handleQuantityFocus(index, e)}
 										onChange={(e) =>
 											handleQuantityChange(index, e.target.value)
 										}
@@ -100,10 +121,11 @@ export default function InvoiceLines({ invoice, setInvoice }: Props) {
 								<td>
 									<input
 										type="number"
-										value={line.unitPrice}
+										value={line.unitPrice === 0 ? "" : line.unitPrice}
 										className="input input-sm input-bordered w-full"
 										min={0}
 										step={0.01}
+										onFocus={(e) => handleUnitPriceFocus(index, e)}
 										onChange={(e) =>
 											handleUnitPriceChange(index, e.target.value)
 										}
